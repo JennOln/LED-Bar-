@@ -1,0 +1,176 @@
+#include <Arduino.h>
+int pinOut[11] = {13, 12, 11, 100, 9, 7, 6, 5};
+#define btn 8
+int op = 0;
+int d = B111000;
+int b = B111110;
+// ----> DECLARACION DE FUNCIONES <---- \\
+int boton();
+void secIntercambio ();
+void sec2Faro ();
+void apagado ();
+void sec3Sirena();
+void sec4Direccional ();
+void sec5inter();
+void setup() {
+  DDRD = B111111;
+  DDRB = B111110;
+  Serial.begin(9600);
+  pinMode(btn, INPUT);
+  d = B111100; //0-7 B111000; D5-0 controlados --> D5->3
+  b = B011100; //8-13 B111110; D13-8 controlados --> d13->9
+  PORTD = B100000;
+  PORTB = b;
+}
+void loop() { ////////////////////////////////////////////////////////
+  int estado = boton();
+  Serial.println(estado);
+  estado = 5;
+  if (estado == 1) {
+    sec2Faro();
+  }
+  if (estado == 2) {
+    secIntercambio ();
+  }
+  if (estado == 3) {
+    sec3Sirena();
+  }
+  if (estado == 4) {
+    sec4Direccional ();
+  }
+  if (estado == 5) {
+    sec5inter();
+  }
+  if (estado == 6) {
+    apagado();
+  }
+
+}
+int boton () {
+  byte estado = digitalRead(btn);
+  if (estado == 1) {
+    op++;
+    delay(200);
+  }
+  if (op > 6) {
+    op = 0;
+  }
+  return op;
+}
+void secIntercambio () {
+  int a = B101000;
+  int c = B010100;
+  for (int i = 0; i < 5; i++) {
+    PORTB = ~c;
+    PORTD = ~a;
+    delay(100);
+    PORTB = c;
+    PORTD = a;
+    delay(100);
+  }
+}
+void sec2Faro () {
+  int x = 0, i = 0;
+  int a = B000000;
+  int A = B000000;
+  int s = B000100;
+  int q = B100000;
+  for (int x = 0; x < 5; x++) { //Puerto B
+    a = q >> x;
+    PORTB = a;
+    delay(50);
+  }
+  for (int i = 0; i < 4; i++) { // Puerto D
+    A = q >> i;
+    PORTD = A;
+    delay(50);
+  }
+  for (int i = 0; i < 5; i++) { // Puerto D
+    A = s << i;
+    PORTD = A;
+    delay(50);
+  }
+  for (int x = 0; x < 4; x++) { //Puerto B
+    a = s << x;
+    PORTB = a;
+    delay(50);
+  }
+}
+void sec3Sirena() {
+  int u = B111111, count = 0, r = 0;;
+  if (count == 0) {
+    count = 1;
+    r = ~u;
+    PORTD = u;
+    delay(25);
+    PORTD = r;
+    delay(25);
+    PORTD = u;
+    delay(25);
+    PORTD = r;
+    delay(25);
+    PORTD = u;
+    delay(25);
+    PORTD = r;
+    delay(180);
+  }
+  if (count == 1) {
+    count = 0;
+    r = ~u;
+    PORTB = u;
+    delay(25);
+    PORTB = r;
+    delay(25);
+    PORTB = u;
+    delay(25);
+    PORTB = r;
+    delay(25);
+    PORTB = u;
+    delay(25);
+    PORTB = r;
+    delay(180);
+  }
+}
+void sec4Direccional () {
+  int r = B100000;
+  int c = B000100;
+  for (int x = 0; x < 4; x++) {
+    int res = 0, res2 = 0;
+    res = r >> x;
+    res2 = c << x;
+    PORTD = res2;
+    PORTB = res;
+    delay(100);
+  }
+  for (int x = 0; x < 4; x++) {
+    int res = 0, res2 = 0;
+    res = r >> x;
+    res2 = c << x;
+    PORTD = res;
+    PORTB = res2;
+    delay(100);
+  }
+}
+void sec5inter() {
+  int b1 = B111010, b3 = B100000;
+  int b2 = B011101, b4 = B000100;
+  int res = 0, res2 = 0, count = 0;
+  if (count == 0) {
+    count = 1;
+    res = b1 & b2;
+    PORTD = res;
+    PORTB = res;
+    delay(200);
+  }
+  if (count == 1) {
+    count = 0;
+    res2 = b3 | b4;
+    PORTD = res2;
+    PORTB = res2;
+    delay(200);
+  }
+}
+void apagado () {
+  PORTB = B000000;
+  PORTD = B000000;
+}
